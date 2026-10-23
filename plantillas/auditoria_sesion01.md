@@ -11,7 +11,13 @@
 ## 1. Fase 1: El Artesano (Dificultad Manual)
 *Reto:* Inversión de buffer in-place (char*)  
 *Describe qué problema o restricción de memoria/sintaxis identificaste al codificar a mano:*
-> La restricción principal fue invertir la cadena sin malloc ni arreglos auxiliares usando solo dos índices y un char temporalEl problema más delicado fue la cadena vacía porque strlen("") devuelve 0 y como size_t no tiene signo restar 1 da un número enorme en lugar de -1 y se saldría del buffer Lo resolví revisando que la longitud no fuera 0 antes de restar También protegí el caso NULL con un return anticipado y comprobé que con "a" el ciclo while (i < j) no entra y la cadena queda igual
+> La restricción principal fue invertir la cadena sin malloc ni arreglos auxiliares usando solo dos índices y un char temporal
+>
+> El problema más delicado fue la cadena vacía porque strlen("") devuelve 0 y como size_t no tiene signo restar 1 da un número enorme en lugar de -1 y se saldría del buffer
+>
+> Lo resolví revisando que la longitud no fuera 0 antes de restar
+>
+> También protegí el caso NULL con un return anticipado y comprobé que con "a" el ciclo while (i < j) no entra y la cadena queda igual
 
 ---
 
@@ -27,7 +33,7 @@
 
 ### 2.2 Prompt Estructurado
 ```text
-[CONTEXTO: Curso de Lenguajes y Autómatas
+CONTEXTO: Curso de Lenguajes y Autómatas
 Trabajo en C con gcc -std=c11 -Wall -Wextra -Werror (las advertencias cuentan como error) y sin bibliotecas no estándar
 Mi archivo se compila junto con un harness que ya tiene su propio main()
 
@@ -42,7 +48,7 @@ ESPECIFICACIÓN: Implementa void invertir(char *s); con esta firma exacta
   "HOLA" -> "ALOH"
   "abc" -> "cba"
   "AB" -> "BA"
-- Cuidado con size_t: no restar 1 a una longitud de 0Pega aquí el prompt formal que redactaste para la IA]
+- Cuidado con size_t: no restar 1 a una longitud de 0
 ```
 
 ---
@@ -70,7 +76,7 @@ void invertir(char *s) {
         inicio++;
         fin--;
     }
-}// Código devuelto por el LLM
+}
 ```
 
 ---
@@ -89,18 +95,26 @@ Caso                              esperado:         obtenido:         resultado
 [ 5] invertir("a")                esperado: a       obtenido: a       OK
 [ 6] invertir(NULL)               esperado: sin crash obtenido: sin crash OK
 
-RESULTADO: 6/6 pruebas superadasPega aquí la salida de la celda del harness. Debe terminar con:
-RESULTADO: n/n pruebas superadas
+RESULTADO: 6/6 pruebas superadas
 ```
 
-* [ ] Caso base y límites superados sin *Crash*.
-* [ ] No existen accesos fuera de límites ni *Memory Leaks*.
-* [ ] La complejidad teórica coincide con la implementada.
+* [x] Caso base y límites superados sin *Crash*.
+* [x] No existen accesos fuera de límites ni *Memory Leaks*.
+* [x] La complejidad teórica coincide con la implementada.
 
 ### Reporte Crítico
 *¿Qué caso borde o problema omitió la IA y cómo lo solucionaste?*
 > Con el prompt que usé la IA no omitió ningún caso del harness pues cubrió NULL y cadena vacía y un solo carácter y pasó 6/6 pruebas
-Lo verifiqué revisando el código contra cada caso y confirmándolo con la ejecución del harness El resultado dependió de la calidad de la especificación porque incluí la advertencia sobre size_t y longitud 0 y sin ella es un error común hacer strlen(s) - 1 sin validar La IA tampoco devolvió análisis de complejidad porque mi prompt no incluyó la parte de Output así que lo redacté yo Además la función asume que s termina en '\0' y que es modificable pues un literal como char *p = "HOLA" es comportamiento indefinido y normalmente da fallo de segmentación y el contrato no puede verificarlo así que es responsabilidad de quien la llama Complejidad: O(n) en tiempo porque se recorren n/2 pares y O(1) en memoria porque solo usa dos punteros y un char
+>
+> Lo verifiqué revisando el código contra cada caso y confirmándolo con la ejecución del harness
+>
+> El resultado dependió de la calidad de la especificación porque incluí la advertencia sobre size_t y longitud 0 y sin ella es un error común hacer strlen(s) - 1 sin validar
+>
+> La IA tampoco devolvió análisis de complejidad porque mi prompt no incluyó la parte de Output así que lo redacté yo
+>
+> Además la función asume que s termina en '\0' y que es modificable pues un literal como char *p = "HOLA" es comportamiento indefinido y normalmente da fallo de segmentación y el contrato no puede verificarlo así que es responsabilidad de quien la llama
+>
+> Complejidad: O(n) en tiempo porque se recorren n/2 pares y O(1) en memoria porque solo usa dos punteros y un char
 
 ---
 **Firma digital:** [kirito2906]
