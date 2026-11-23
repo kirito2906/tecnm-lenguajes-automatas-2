@@ -91,4 +91,4 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion09.md
 > El caso borde que suele omitir la IA es cuando cap es cero o negativo porque un cap negativo al convertirse a size_t se vuelve un número enorme y snprintf escribiría fuera del buffer y con cap cero no se debe escribir nada ni siquiera el caracter nulo también faltan los punteros NULL en archivo mensaje y salida el harness no prueba nada de eso lo detecté agregando casos extra con cap=0 cap=-1 y mensaje=NULL y lo solucioné revisando salida y cap al inicio de la función y poniendo (null) cuando archivo o mensaje son NULL
 
 ---
-**Firma digital:** [Kirito2906]
+**Firma digital:** [kirito2906]
