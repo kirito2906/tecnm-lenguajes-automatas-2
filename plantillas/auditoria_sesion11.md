@@ -99,4 +99,4 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion11.md
 > La IA pasó los 6 casos pero usó strcpy para copiar el nombre al campo de 16 bytes sin limitar la longitud así que con un nombre de más de 15 caracteres se desborda el arreglo y escribe fuera del nodo el harness no tiene ningún caso con nombres largos y por eso salió en verde lo detecté insertando un nombre largo y compilando con fsanitize address que marcó el desbordamiento en el heap lo solucioné copiando con strncpy y cerrando el último byte con el carácter nulo además los nodos se reservan con malloc y el contrato de la sesión no incluye una función para liberarlos así que quedan sin liberar al terminar el programa
 
 ---
-**Firma digital:** kirito2906
+**Firma digital:** [kirito2906]
