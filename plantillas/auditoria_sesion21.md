@@ -1,10 +1,10 @@
 # Bitácora de Requerimientos y Auditoría IA — Sesión 21
 
-**Materia:** Lenguajes y Autómatas II (SCD-1016)  
-**Tema:** Fundamentos de Código de Tres Direcciones (TAC)  
-**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
-**Estudiante:** Héctor Iván Varguez Andrade  
-**Matrícula:** 24531321  
+**Materia:** Lenguajes y Autómatas II (SCD-1016)
+**Tema:** Fundamentos de Código de Tres Direcciones (TAC)
+**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)
+**Estudiante:** Héctor Iván Varguez Andrade
+**Matrícula:** 24531321
 **Track:** C (el harness evalúa C; la versión en Rust es opcional y no se califica con este harness)
 
 ---
@@ -30,26 +30,23 @@
 
 ### 2.1 Matriz de Especificación Formal
 
-| Elemento C-R-E-O | Definición Técnica |
-| :--- | :--- |
-| **Contexto (C)** | C11 / GCC sin bibliotecas no estándar, utilizando buffers de texto y funciones para generar temporales y cuádruplos. |
-| **Rol (R)** | Ingeniero de software de sistemas y compiladores. |
+| Elemento C-R-E-O       | Definición Técnica                                                                                                                                                                                             |
+| :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Contexto (C)**       | C11 / GCC sin bibliotecas no estándar, utilizando buffers de texto y funciones para generar temporales y cuádruplos.                                                                                           |
+| **Rol (R)**            | Ingeniero de software de sistemas y compiladores.                                                                                                                                                              |
 | **Especificación (E)** | Generación de temporales únicos mediante un contador y construcción de cuádruplos con el formato `(op, a1, a2, res)`, sustituyendo los argumentos NULL por guiones bajos y respetando la capacidad del buffer. |
-| **Output (O)** | Solo código modular en C, respetando la interfaz del archivo `api_sesion21.h`, sin `main()` y utilizando `snprintf()` para escribir en los buffers. |
+| **Output (O)**         | Solo código modular en C, respetando la interfaz del archivo `api_sesion21.h`, sin `main()` y utilizando `snprintf()` para escribir en los buffers.                                                            |
 
 ### 2.2 Prompt Estructurado
 
 ```text
-Contexto: Estoy trabajando en C, compilado con gcc -std=c11
--Wall -Wextra -Werror, sin bibliotecas no estándar.
-
-Tengo una cabecera api_sesion21.h que declara las funciones
+CONTEXTO: C11 con GCC (-Wall -Wextra -Werror), solo libc.
+La cabecera api_sesion21.h declara las funciones
 nuevo_temporal() y emitir_cuadruplo().
 
-Rol: Eres un ingeniero de software especializado en sistemas
-y compiladores.
+ROL: Ingeniero de software especializado en sistemas y compiladores.
 
-Especificación:
+ESPECIFICACIÓN:
 
 Implementa las siguientes funciones:
 
@@ -73,7 +70,7 @@ void emitir_cuadruplo(char *dst, int cap, const char *op,
 - Respeta exactamente las firmas de api_sesion21.h.
 - El código debe compilar sin advertencias.
 
-Output: Entrega las dos funciones completas en C,
+OUTPUT: Entrega las dos funciones completas en C,
 listas para utilizarse en ia_sesion21_c.c.
 ```
 
@@ -143,7 +140,7 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion21.md
 ```
 
 - [x] Casos incluidos en las pruebas superados sin *Crash*.
-- [ ] No se realizó una auditoría específica para comprobar todos los accesos fuera de límites o posibles *Memory Leaks*.
+- [x] No se realizó una auditoría específica para comprobar todos los accesos fuera de límites o posibles *Memory Leaks*.
 - [x] La complejidad teórica coincide con la implementada.
 
 ### Reporte Crítico
