@@ -1,10 +1,10 @@
 # Bitácora de Requerimientos y Auditoría IA — Sesión 17
 
-**Materia:** Lenguajes y Autómatas II (SCD-1016)
-**Tema:** Comprobación Semántica de Retornos y Rutas de Control
-**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)
-**Estudiante:** Héctor Iván Varguez Andrade
-**Matrícula:** 24531321
+**Materia:** Lenguajes y Autómatas II (SCD-1016)  
+**Tema:** Comprobación Semántica de Retornos y Rutas de Control  
+**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
+**Estudiante:** Héctor Iván Varguez Andrade  
+**Matrícula:** 24531321  
 **Track:** C (el harness evalúa C; la versión en Rust es opcional y no se califica con este harness)
 
 ---
@@ -15,15 +15,17 @@
 
 *Describe qué problema o restricción de memoria/sintaxis identificaste al codificar a mano:*
 
-> Las restricciones que tuve que resolver al codificar a mano fueron:
+> Una de las dificultades que encontré fue organizar las validaciones para que el programa pudiera identificar correctamente los errores relacionados con los tipos de retorno y las rutas de ejecución. Primero tuve que establecer una forma de comparar los tipos de datos, utilizando una tabla con diferentes niveles de ancho: `char`, `int`, `long`, `float` y `double`. De esta manera, una función puede aceptar un tipo de origen cuando su tipo de destino tiene un ancho igual o mayor.
 >
-> - **Comparación de tipos:** `diagnosticar_retorno()` debe comprobar que el tipo de la expresión devuelta sea compatible con el tipo que promete la función.
-> - **Conversión de tipos:** solamente se debe aceptar una conversión cuando el tipo destino sea igual o más ancho que el tipo de origen.
-> - **Funciones void:** una función de tipo `void` no puede devolver un valor y debe comprobarse que la expresión también sea `void`.
-> - **Validación de rutas:** se debe comprobar que todas las rutas de ejecución terminen en un retorno, especialmente cuando existe un `if` sin `else`.
-> - **Entradas inválidas:** si alguno de los tipos es `NULL`, si existen cero rutas o si las rutas con retorno son mayores que las rutas totales, se debe devolver `-1`.
-> - **Orden de validación:** primero se debe revisar si los tipos son compatibles y después comprobar las rutas, para no reportar una ruta faltante cuando realmente existe un error de tipo.
-> - **Punto en que me atoré:** tuve que organizar las condiciones para diferenciar un tipo incompatible de una ruta que no tiene retorno, porque cada situación debe devolver un resultado diferente.
+> También tuve que considerar algunos casos especiales:
+>
+> - Una función de tipo `void` no debe devolver un valor, por lo que es necesario comprobar el tipo de la expresión.
+> - Si una expresión tiene un tipo incompatible con el de la función, se debe devolver 1.
+> - Cuando alguna ruta de ejecución no contiene un retorno, el resultado debe ser 2.
+> - Si todos los tipos son compatibles y las rutas están completas, la función debe regresar 0.
+> - Las entradas con tipos `NULL`, cero rutas o cantidades incoherentes deben identificarse como inválidas y devolver -1.
+>
+> Lo que más trabajo me dio fue establecer el orden de las condiciones, porque primero se debe revisar la compatibilidad de los tipos y después comprobar las rutas de ejecución. Así se evita confundir un error de tipo con una ruta que no tiene una sentencia `return`.
 
 ---
 
@@ -31,48 +33,45 @@
 
 ### 2.1 Matriz de Especificación Formal
 
-| **Elemento C-R-E-O**   | **Definición Técnica**                                                                                                                       |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Contexto (C)**       | C11 / GCC sin bibliotecas no estándar, utilizando tipos de datos y conteo de rutas de ejecución.                                             |
-| **Rol (R)**            | Ingeniero de software de sistemas y compiladores.                                                                                            |
-| **Especificación (E)** | Comparación de tipos de retorno, validación de conversiones permitidas y comprobación de que todas las rutas de ejecución tengan un retorno. |
-| **Output (O)**         | Solo código modular en C, respetando la interfaz del archivo `api_sesion17.h`, sin `main()` y con análisis de complejidad.                   |
+| Elemento C-R-E-O | Definición Técnica |
+| :--- | :--- |
+| **Contexto (C)** | C11 / GCC con bibliotecas estándar, utilizando una tabla de tipos y datos sobre las rutas de ejecución. |
+| **Rol (R)** | Ingeniero de software especializado en sistemas y compiladores. |
+| **Especificación (E)** | Comprobación de compatibilidad entre tipos de retorno y validación de que las rutas de ejecución cumplan con las condiciones de retorno. |
+| **Output (O)** | Código modular en C, respetando la interfaz de `api_sesion17.h`, sin `main()` y acompañado de un análisis de complejidad. |
 
 ### 2.2 Prompt Estructurado
 
 ```text
-Contexto: Estoy trabajando en C, compilado con gcc -std=c11
--Wall -Wextra -Werror, sin bibliotecas no estándar.
-Tengo una cabecera api_sesion17.h que define la función
-diagnosticar_retorno() para validar los tipos de retorno
-y las rutas de ejecución.
+CONTEXTO: Trabajar con C11 utilizando GCC y las opciones
+-Wall -Wextra -Werror, empleando únicamente bibliotecas estándar.
+Se dispone del archivo api_sesion17.h, que contiene la
+declaración de diagnosticar_retorno().
 
-Rol: Eres un ingeniero de software especializado en
-sistemas y compiladores.
+ROL: Actúa como un ingeniero de software con conocimientos
+en sistemas y desarrollo de compiladores.
 
-Especificación: Implementa la función:
+ESPECIFICACIÓN: Implementa la función encargada de verificar
+los tipos de retorno y las rutas de ejecución.
 
-int diagnosticar_retorno(const char *tipo_funcion,
-                         const char *tipo_expresion,
-                         int rutas_totales,
-                         int rutas_con_return);
-
-- Devuelve 0 si los tipos son compatibles y todas las
-  rutas tienen return.
-- Devuelve 1 si existe un tipo incompatible.
-- Devuelve 2 si existe alguna ruta sin retorno.
-- Devuelve -1 si alguno de los tipos es NULL, hay cero
-  rutas, el conteo es incoherente o el tipo es desconocido.
-- Una función void no puede devolver un valor.
-- Las conversiones solamente se aceptan cuando el tipo
-  destino es igual o más ancho que el tipo de origen.
-- Compara primero los tipos y después las rutas.
-- Respeta exactamente la firma de api_sesion17.h.
+- Devuelve 0 cuando los tipos sean compatibles y todas
+  las rutas tengan un retorno.
+- Devuelve 1 cuando exista incompatibilidad entre los tipos.
+- Devuelve 2 cuando al menos una ruta no tenga retorno.
+- Devuelve -1 cuando los tipos sean NULL, existan cero
+  rutas, los conteos sean incoherentes o se encuentre
+  un tipo que no esté registrado.
+- Una función void no debe devolver expresiones con valor.
+- Utiliza una tabla para identificar los tipos y sus anchos.
+- Acepta conversiones cuando el tipo destino tenga
+  un ancho igual o mayor al tipo de origen.
+- Realiza primero la comprobación de tipos y después
+  la validación de las rutas.
+- Conserva exactamente la firma definida en api_sesion17.h.
 - No incluyas main().
 
-Output: Entrega únicamente el código modular en C,
-utilizando una tabla para comparar los tipos de datos,
-sin modificar la interfaz del harness.
+OUTPUT: Entrega únicamente el código modular en C y un
+análisis breve de su complejidad temporal y espacial.
 ```
 
 ---
@@ -142,7 +141,7 @@ int diagnosticar_retorno(const char *tipo_funcion,
 
 ## 4. Fase 3: El Auditor (Resultados del Test Harness)
 
-*Pruebas ejecutadas:* Funciones con tipos de retorno compatibles e incompatibles, funciones `void`, rutas sin retorno y entradas con cero rutas de ejecución.
+*Pruebas ejecutadas:* Compatibilidad entre tipos de retorno, funciones `void`, comprobación de rutas incompletas y validación de cero rutas de ejecución.
 
 ### Salida del harness
 
@@ -160,21 +159,24 @@ RESULTADO: 6/6 pruebas superadas
 TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion17.md
 ```
 
-- [x] Caso base y límites contemplados en las pruebas superadas sin *Crash*.
-- [x] No existen accesos fuera de límites ni *Memory Leaks* (no se realizó una auditoría específica de memoria).
-- [x] La complejidad teórica coincide con la implementada.
+* [x] Caso base y límites contemplados en las pruebas superadas sin *Crash*.
+* [x] No se observaron fallos durante las pruebas realizadas.
+* [x] La complejidad teórica coincide con la implementada.
 
 ### Reporte Crítico
 
 *¿Qué caso borde o problema omitió la IA y cómo lo solucionaste?*
 
-> El harness pasó 6/6 con la versión de la IA, pero al revisar el código encontré algunos detalles que se deben considerar y que las pruebas no contemplan completamente:
+> La IA logró superar las seis pruebas del harness, pero al revisar su funcionamiento encontré algunas situaciones que sería importante comprobar con pruebas adicionales:
 >
-> - **Tipos desconocidos:** no se realizó una prueba específica con nombres de tipos que no estén dentro de la tabla, aunque el código los identifica y devuelve `-1`.
-> - **Entradas NULL:** no se probaron individualmente los casos donde `tipo_funcion` o `tipo_expresion` son `NULL`, aunque la implementación contiene esa validación.
-> - **Conteos incoherentes:** no se probaron todos los casos donde las rutas con retorno son negativas o mayores que las rutas totales.
-> - **Función void sin retorno:** el código de la IA acepta `void` con `void` sin exigir que todas las rutas tengan `return`. Esto sigue la condición especial de la implementación, pero sería importante confirmar con el docente si ese comportamiento es el esperado.
-> - **Cómo lo detecté:** revisando las condiciones del código de la IA y comparándolas con los seis casos que ejecutó el harness.
+> - **Tipos no registrados:** la tabla solamente contiene `char`, `int`, `long`, `float` y `double`. Si se utiliza otro tipo, como `short`, la función devuelve -1. Sería conveniente ampliar la tabla para reconocer otros tipos de datos permitidos.
+> - **Entradas NULL:** el código comprueba si los nombres de los tipos son NULL, pero no se realizaron pruebas individuales para verificar cada una de estas condiciones.
+> - **Conteos de rutas:** también sería necesario probar cantidades negativas de retornos y casos donde las rutas con retorno sean mayores que las rutas totales.
+> - **Funciones void:** observé que cuando la función y la expresión son de tipo `void`, el programa devuelve 0 directamente, sin comprobar si todas las rutas tienen retorno. Esto puede ser válido dependiendo de cómo se interprete la sentencia `return` en una función void, pero sería conveniente confirmar ese comportamiento con el docente.
+>
+> Al revisar estas condiciones pude identificar que las seis pruebas realizadas no cubren todos los posibles casos de la función. Para mejorar la implementación sería necesario agregar más pruebas y revisar las validaciones especiales, principalmente las relacionadas con los tipos desconocidos y las funciones sin valor de retorno.
+>
+> La complejidad temporal es O(1), porque la búsqueda se realiza sobre una tabla de tipos de tamaño fijo. El espacio adicional también es O(1), ya que no se crean estructuras dinámicas ni se necesita memoria adicional durante la ejecución.
 
 ---
 
