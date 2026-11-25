@@ -1,29 +1,29 @@
 # Bitácora de Requerimientos y Auditoría IA — Sesión 18
 
-**Materia:** Lenguajes y Autómatas II (SCD-1016)
-**Tema:** Arreglos y Verificación de Límites
-**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)
-**Estudiante:** Héctor Iván Varguez Andrade
-**Matrícula:** 24531321
+**Materia:** Lenguajes y Autómatas II (SCD-1016)  
+**Tema:** Arreglos y Verificación de Límites  
+**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
+**Estudiante:** Héctor Iván Varguez Andrade  
+**Matrícula:** 24531321  
 **Track:** C (el harness evalúa C; la versión en Rust es opcional y no se califica con este harness)
 
 ---
 
 ## 1. Fase 1: El Artesano (Dificultad Manual)
 
-*Reto:* Cálculo de tamaño de arreglos y validación de índices
+*Reto:* Cálculo de tamaño de arreglos y validación de índices.
 
 *Describe qué problema o restricción de memoria/sintaxis identificaste al codificar a mano:*
 
-> Las restricciones que tuve que resolver al codificar a mano fueron:
->
-> - **Identificación de tipos:** `bytes_arreglo()` debe reconocer los tipos válidos y asignarles su tamaño correspondiente en bytes: char, short, int, float, double y puntero.
-> - **Cálculo de memoria:** se debe multiplicar la cantidad de elementos por el tamaño del tipo para obtener el total de bytes del arreglo.
-> - **Tipos desconocidos:** si se recibe un tipo que no está dentro de los permitidos, la función debe devolver `-1`.
-> - **Dimensiones inválidas:** si la cantidad de elementos es negativa, debe devolver `-1`, mientras que con cero elementos debe devolver `0`.
-> - **Validación de índices:** `indice_en_rango()` debe aceptar índices desde cero hasta `elementos - 1`, sin permitir que el índice sea igual a la cantidad de elementos.
-> - **Índices negativos:** se deben rechazar los índices negativos sin realizar comparaciones incorrectas.
-> - **Punto en que me atoré:** tuve que tener cuidado al calcular el tamaño total del arreglo y al distinguir entre el último índice válido y el número total de elementos, porque no representan lo mismo.
+Al realizar este ejercicio identifiqué varios puntos que debía cuidar para que las funciones trabajaran correctamente:
+
+- **Identificación de tipos:** `bytes_arreglo()` necesita reconocer los tipos permitidos y asignarles su tamaño en bytes: char, short, int, float, double y puntero.
+- **Cálculo de memoria:** es necesario multiplicar el número de elementos por el tamaño correspondiente al tipo de dato para obtener el espacio total del arreglo.
+- **Tipos desconocidos:** si se recibe un tipo que no está registrado, la función debe devolver `-1`.
+- **Dimensiones inválidas:** una cantidad negativa de elementos debe devolver `-1`, mientras que una cantidad igual a cero debe dar como resultado `0`.
+- **Validación de índices:** `indice_en_rango()` debe aceptar únicamente índices desde cero hasta `elementos - 1`.
+- **Índices negativos:** se deben rechazar para evitar que sean considerados como posiciones válidas.
+- **Dificultad principal:** tuve que distinguir entre la cantidad total de elementos y el último índice permitido, además de cuidar que el cálculo del tamaño se realizara correctamente.
 
 ---
 
@@ -31,12 +31,12 @@
 
 ### 2.1 Matriz de Especificación Formal
 
-| Elemento C-R-E-O       | Definición Técnica                                                                                                                                                    |
-| :--------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Contexto (C)**       | C11 / GCC sin bibliotecas no estándar, utilizando una tabla con los tamaños de los tipos de datos.                                                                    |
-| **Rol (R)**            | Ingeniero de software de sistemas y compiladores.                                                                                                                     |
-| **Especificación (E)** | Calcular el tamaño total de un arreglo según su tipo y cantidad de elementos. Validar índices dentro del rango permitido y rechazar dimensiones o entradas inválidas. |
-| **Output (O)**         | Solo código modular en C, respetando la interfaz del archivo `api_sesion18.h`, sin `main()` y con análisis de complejidad.                                            |
+| Elemento C-R-E-O | Definición Técnica |
+| :--- | :--- |
+| **Contexto (C)** | C11 con GCC, sin bibliotecas no estándar. Se utiliza una tabla para identificar los tamaños de los tipos de datos. |
+| **Rol (R)** | Ingeniero de software de sistemas y compiladores. |
+| **Especificación (E)** | Calcular el tamaño de un arreglo según su tipo y cantidad de elementos. También validar que los índices estén dentro del rango permitido y rechazar entradas inválidas. |
+| **Output (O)** | Código modular en C, respetando las funciones declaradas en `api_sesion18.h`, sin incluir `main()` y acompañado de un análisis de complejidad. |
 
 ### 2.2 Prompt Estructurado
 
@@ -118,14 +118,14 @@ int indice_en_rango(int indice, int elementos) {
 
 **Análisis de complejidad:**
 
-- `bytes_arreglo()`: O(1), porque recorre una tabla de tamaño fijo con seis tipos de datos.
-- `indice_en_rango()`: O(1), porque realiza comparaciones directas para comprobar si el índice está dentro del rango.
+- `bytes_arreglo()`: O(1), porque recorre una tabla que siempre contiene seis tipos de datos.
+- `indice_en_rango()`: O(1), porque solamente realiza dos comparaciones para comprobar si el índice pertenece al rango permitido.
 
 ---
 
 ## 4. Fase 3: El Auditor (Resultados del Test Harness)
 
-*Pruebas ejecutadas:* Límites estáticos y dimensiones inválidas, incluyendo cálculo de memoria, índices válidos, índices fuera de rango y cantidades negativas.
+*Pruebas ejecutadas:* Se verificaron cálculos de memoria, dimensiones negativas, índices válidos e índices fuera del rango permitido.
 
 ### Salida del harness
 
@@ -143,21 +143,21 @@ RESULTADO: 6/6 pruebas superadas
 TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion18.md
 ```
 
-- [x] Caso base y límites contemplados en las pruebas superadas sin *Crash*.
-- [x] No existen accesos fuera de límites ni *Memory Leaks* (no se realizó una auditoría específica de memoria).
-- [x] La complejidad teórica coincide con la implementada.
+- [x] Los casos ejecutados fueron superados sin presentar errores ni cierres inesperados.
+- [x] No se observaron problemas de acceso fuera de límites en las pruebas realizadas. No se efectuó una auditoría específica de memoria.
+- [x] La complejidad teórica corresponde con las operaciones implementadas.
 
 ### Reporte Crítico
 
 *¿Qué caso borde o problema omitió la IA y cómo lo solucionaste?*
 
-> El harness pasó 6/6 con la versión de la IA, pero al revisar el código encontré algunos detalles que se deben considerar y que las pruebas no contemplan completamente:
->
-> - **Arreglo con cero elementos:** no se realizó una prueba específica para comprobar que `bytes_arreglo()` devuelva cero cuando la cantidad de elementos es cero.
-> - **Tipos desconocidos:** no se probó qué sucede cuando se recibe un nombre de tipo que no está registrado en la tabla, aunque el código contempla devolver `-1`.
-> - **Puntero NULL:** no se realizó una prueba específica enviando un tipo `NULL` para comprobar que la función rechace esa entrada.
-> - **Cantidad de elementos negativa en índices:** el harness prueba un índice negativo, pero no comprueba por separado qué sucede cuando la cantidad de elementos es negativa.
-> - **Cómo lo detecté:** revisando el código de la IA y comparando sus condiciones con los seis casos que realmente ejecutó el harness. Identifiqué que todavía se pueden agregar pruebas para comprobar esas situaciones.
+El harness logró superar las seis pruebas, pero al revisar el código encontré algunas situaciones que no fueron comprobadas directamente:
+
+- **Arreglo con cero elementos:** no se ejecutó una prueba específica para verificar que `bytes_arreglo()` devuelva `0` cuando la cantidad de elementos sea cero.
+- **Tipos desconocidos:** tampoco se probó con un nombre de tipo que no estuviera registrado en la tabla. Sin embargo, al revisar el código comprobé que devuelve `-1` cuando no encuentra coincidencias.
+- **Puntero NULL:** no se realizó una prueba enviando `NULL` como tipo, aunque existe una condición para rechazar esa entrada.
+- **Cantidad negativa en la validación de índices:** se probó un índice negativo, pero no se comprobó por separado qué sucede cuando la cantidad de elementos es negativa.
+- **Cómo lo detecté:** comparé las condiciones del código con los seis casos ejecutados por el harness. Así identifiqué que todavía faltaban algunas pruebas para revisar mejor los límites y las entradas no válidas.
 
 ---
 
