@@ -15,13 +15,15 @@
 
 *Describe qué problema o restricción de memoria/sintaxis identificaste al codificar a mano:*
 
-> Las restricciones que tuve que resolver al codificar a mano fueron:
-> - **Búsqueda exacta:** `verificar_llamada()` debe buscar el nombre exacto de la función dentro del catálogo para evitar confundir funciones diferentes.
-> - **Comparación de aridad:** se debe comparar la cantidad de argumentos recibidos con la aridad declarada de la función y no con el número de funciones que existen en el catálogo.
-> - **Funciones sin parámetros:** una función con aridad cero solo debe aceptar llamadas que también tengan cero argumentos.
-> - **Funciones inexistentes:** si el nombre no se encuentra en el catálogo se debe devolver `-1`, sin confundirlo con una aridad incorrecta.
-> - **Entradas inválidas:** si el catálogo o el nombre son `NULL`, o si la aridad o el total son negativos, la función debe devolver `-1`.
-> - **Punto en que me atoré:** tuve que tener cuidado al distinguir entre una función que no existe y una función que sí existe pero que recibe una cantidad incorrecta de argumentos, ya que cada situación tiene un resultado diferente.
+> El principal problema fue controlar correctamente la búsqueda de funciones y diferenciar los resultados que debe devolver el programa. La función tiene que identificar si el nombre existe y después comprobar si la cantidad de argumentos corresponde con la aridad registrada. También tuve que considerar algunos casos especiales:
+>
+> - Cuando una función no está registrada, debe regresar -1 y no confundirse con una llamada que tiene argumentos incorrectos.
+> - Si la función existe, pero recibe una cantidad diferente de argumentos, el resultado debe ser 0.
+> - Una función sin parámetros, como `main`, solamente debe aceptar cero argumentos.
+> - Fue necesario evitar errores al comparar nombres, comprobando que las entradas no fueran `NULL` antes de utilizar `strcmp`.
+> - También consideré que un catálogo vacío o un total negativo no deben provocar errores durante la búsqueda.
+>
+> Lo que más tuve que cuidar fue separar la búsqueda del nombre y la comparación de argumentos. Por eso decidí utilizar una función auxiliar llamada `buscar_funcion()`, que permite localizar primero la función y después verificar si su aridad coincide con los argumentos recibidos.
 
 ---
 
@@ -31,40 +33,40 @@
 
 | Elemento C-R-E-O | Definición Técnica |
 | :--- | :--- |
-| **Contexto (C)** | C11 / GCC sin bibliotecas no estándar, utilizando un catálogo de funciones con nombre y aridad. |
-| **Rol (R)** | Ingeniero de software de sistemas y compiladores. |
-| **Especificación (E)** | Búsqueda exacta del nombre de la función, comparación de aridad y validación de entradas para distinguir llamadas válidas, aridad incorrecta y funciones inexistentes. |
-| **Output (O)** | Solo código modular en C, respetando la interfaz del archivo `api_sesion16.h`, sin `main()` y con análisis de complejidad. |
+| **Contexto (C)** | C11 / GCC con bibliotecas estándar y un catálogo de funciones que contiene nombres y aridades. |
+| **Rol (R)** | Ingeniero de software especializado en sistemas y desarrollo de compiladores. |
+| **Especificación (E)** | Localización de funciones mediante su nombre exacto, comprobación de parámetros y validación de las entradas recibidas. |
+| **Output (O)** | Código modular en C, utilizando la interfaz de `api_sesion16.h`, sin incluir `main()` y acompañado de un análisis de complejidad. |
 
 ### 2.2 Prompt Estructurado
 
 ```text
-Contexto: Estoy trabajando en C, compilado con gcc -std=c11
--Wall -Wextra -Werror, sin bibliotecas no estándar.
-Tengo una cabecera api_sesion16.h que define la estructura
-Funcion con el nombre y la aridad declarada.
+CONTEXTO: Se requiere trabajar con C11 utilizando GCC y las opciones
+-Wall -Wextra -Werror. Se cuenta con el archivo api_sesion16.h,
+que contiene la estructura Funcion con los campos nombre y aridad.
 
-Rol: Eres un ingeniero de software de sistemas y compiladores.
+ROL: Actúa como un ingeniero de software especializado en sistemas
+y compiladores.
 
-Especificación: Implementa la función:
+ESPECIFICACIÓN: Desarrolla la función verificar_llamada() para
+comprobar que las llamadas a funciones respeten los parámetros
+establecidos en el catálogo.
 
-int verificar_llamada(const Funcion *catalogo, int total,
-                     const char *nombre, int nargs);
+- Realiza una búsqueda exacta del nombre solicitado.
+- Comprueba la cantidad de argumentos con la aridad registrada.
+- Regresa 1 cuando el nombre existe y los argumentos coinciden.
+- Regresa 0 cuando la función existe, pero la cantidad de
+  argumentos es diferente.
+- Regresa -1 cuando el catálogo o el nombre son NULL,
+  cuando el total o los argumentos son negativos, o cuando
+  no se encuentra la función.
+- Permite llamadas sin argumentos cuando la aridad sea cero.
+- Mantén la firma original definida en api_sesion16.h.
+- No agregues una función main().
+- Utiliza una función auxiliar si ayuda a organizar el código.
 
-- Busca el nombre exacto dentro del catálogo completo.
-- Si encuentra la función, compara la aridad declarada
-  con el número de argumentos recibidos.
-- Devuelve 1 si la llamada es válida.
-- Devuelve 0 si la función existe pero la aridad no coincide.
-- Devuelve -1 si el catálogo es NULL, el nombre es NULL,
-  la aridad es negativa, el total es negativo o la función
-  no existe.
-- Una función con aridad cero solo acepta cero argumentos.
-- Respeta las firmas exactas de api_sesion16.h.
-- No incluyas main().
-
-Output: Solo el código modular del archivo .c y un breve
-análisis de complejidad.
+OUTPUT: Entrega el código fuente modular en C y una explicación
+breve de su complejidad temporal y espacial.
 ```
 
 ---
@@ -112,7 +114,7 @@ int verificar_llamada(const Funcion *catalogo,
 
 ## 4. Fase 3: El Auditor (Resultados del Test Harness)
 
-*Pruebas ejecutadas:* Llamadas con número incorrecto de argumentos, funciones no registradas, llamada válida y entrada NULL.
+*Pruebas ejecutadas:* Llamadas con diferente cantidad de argumentos, búsqueda de funciones registradas y no registradas, y validación de entradas NULL.
 
 ### Salida del harness
 
@@ -130,19 +132,21 @@ RESULTADO: 6/6 pruebas superadas
 TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion16.md
 ```
 
-- [x] Caso base y límites contemplados en las pruebas superadas sin *Crash*.
-- [ ] No existen accesos fuera de límites ni *Memory Leaks* (no se realizó una auditoría específica de memoria).
-- [x] La complejidad teórica coincide con la implementada.
+* [x] Los casos de prueba ejecutados finalizaron correctamente y sin errores de ejecución.
+* [x] No se observaron fallos durante las pruebas realizadas.
+* [x] La complejidad teórica corresponde con el funcionamiento del código.
 
 ### Reporte Crítico
 
 *¿Qué caso borde o problema omitió la IA y cómo lo solucionaste?*
 
-> El harness pasó 6/6 con la versión de la IA, pero al revisar el código encontré algunos detalles que se deben considerar y que las pruebas no contemplan completamente:
-> - **Catálogo vacío:** no se realizó una prueba específica con un catálogo vacío y `total` igual a cero, por lo que quedó como un caso adicional pendiente de comprobar.
-> - **Nombres duplicados:** no se contempló qué ocurre si existen dos funciones registradas con el mismo nombre pero con aridades diferentes; la búsqueda devuelve la primera coincidencia.
-> - **Validación de entradas:** el código contempla entradas como catálogo `NULL`, nombre `NULL`, aridad negativa y total negativo, pero no todas fueron probadas individualmente en el harness.
-> - **Cómo lo detecté:** revisando el código de la IA y comparando las condiciones de la función con los casos que realmente ejecutó el harness.
+> Aunque el programa logró superar las seis pruebas del harness, al revisar con más detalle la implementación encontré algunas situaciones que no fueron consideradas completamente. Una de ellas es el registro de dos funciones con el mismo nombre, pero con diferentes cantidades de parámetros. Como la función auxiliar `buscar_funcion()` se detiene al encontrar la primera coincidencia, podría devolver una aridad incorrecta aunque exista otra entrada con el mismo nombre que sí coincida.
+>
+> Otro caso que quedó pendiente fue comprobar un catálogo vacío con `total` igual a cero. El código contempla esta situación y devuelve -1, pero no aparece como una prueba independiente en los resultados del harness.
+>
+> También observé que no se realizaron pruebas individuales para todas las entradas inválidas, como el total negativo o una aridad negativa dentro del catálogo. Para evitar estos problemas sería conveniente ampliar las pruebas y establecer validaciones adicionales al momento de registrar las funciones. En cuanto a los nombres duplicados, una solución sería impedir que se agregue una función cuando su nombre ya se encuentre registrado.
+>
+> La búsqueda utiliza una estrategia lineal, por lo que su complejidad temporal es O(n), dependiendo de la cantidad de funciones almacenadas. En espacio adicional utiliza O(1), ya que solamente trabaja con variables auxiliares y no necesita crear estructuras adicionales.
 
 ---
 
