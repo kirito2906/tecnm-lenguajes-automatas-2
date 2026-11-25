@@ -1,20 +1,20 @@
 # Bitácora de Requerimientos y Auditoría IA — Sesión 20
 
-**Materia:** Lenguajes y Autómatas II (SCD-1016)  
-**Tema:** Hito 2: Analizador Semántico y Scopes  
-**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
-**Estudiante:** Héctor Iván Varguez Andrade  
-**Matrícula:** 24531321  
+**Materia:** Lenguajes y Autómatas II (SCD-1016)
+**Tema:** Hito 2: Analizador Semántico y Scopes
+**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)
+**Estudiante:** Héctor Iván Varguez Andrade
+**Matrícula:** 24531321
 **Track:** C (el harness evalúa C; la versión en Rust es opcional y no se califica con este harness)
 
 ---
 
 ## 1. Fase 1: El Artesano (Dificultad Manual)
 
-*Reto:* Integración de Tabla de Símbolos y AST  
+*Reto:* Integración de Tabla de Símbolos y AST
 *Describe qué problema o restricción de memoria/sintaxis identificaste al codificar a mano:*
 
-> Lo que más me costó fue `contar_visibles`, porque un nombre que aparece en varios ámbitos solamente debe contarse una vez. `profundidad_de` fue más directa: comienzo desde el ámbito actual y voy subiendo por los `padre` con un contador de nivel, así el shadowing funciona correctamente (si `x` está en el bloque actual y también en el global, regresa 0). Para contar los nombres utilicé una lista de los símbolos que ya fueron encontrados, evitando que se repitan. También tuve que considerar las entradas `NULL`, porque no se pueden comparar directamente con `strcmp`. Otro detalle que identifiqué fue que el arreglo utilizado por la IA tiene un límite de 256 nombres, por lo que puede dejar de contar si se supera esa cantidad. Los argumentos `NULL` regresan -2 en las funciones correspondientes y un nombre que no existe regresa -1.
+> Al realizar esta parte, noté que las dos funciones necesitaban recorridos diferentes. En `profundidad_de` debía revisar primero el ámbito actual y después continuar con sus padres, aumentando el nivel en cada recorrido para identificar correctamente dónde se encontraba el nombre. Para `contar_visibles`, el reto fue evitar que los identificadores repetidos aumentaran el resultado. Por eso consideré utilizar un arreglo auxiliar que conservara los nombres encontrados y permitiera comprobar si ya habían sido registrados. También tuve que cuidar que los espacios con valor `NULL` no llegaran a compararse mediante `strcmp`. Una restricción que identifiqué fue que el arreglo auxiliar solamente puede guardar 256 nombres, lo cual podría afectar el resultado cuando se supera esa cantidad. Finalmente, tomé en cuenta los valores especiales del contrato: -2 para argumentos NULL y -1 cuando no se encuentra el identificador.
 
 ---
 
@@ -22,7 +22,7 @@
 
 ### 2.1 Matriz de Especificación Formal
 
-| **Elemento C-R-E-O**   | **Definición Técnica**                            |
+| **Elemento C-R-E-O** | **Definición Técnica** |
 | ---------------------- | ------------------------------------------------- |
 | **Contexto (C)**       | C99 / GCC o Rust 2021 sin bibliotecas no estándar |
 | **Rol (R)**            | Ingeniero de software de sistemas y compiladores  |
@@ -31,7 +31,7 @@
 
 ### 2.2 Prompt Estructurado
 
-```text
+```yaml
 CONTEXTO: C11 con GCC (-Wall -Wextra -Werror), solo libc. La cabecera
 api_sesion20.h define:
   #define AMBITO_MAX 8
@@ -152,14 +152,16 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion20.md
 ```
 
 - [x] Caso base y límites superados sin *Crash*. (en los casos del harness; el reporte describe una limitación fuera de ellos)
-- [x] Se comprueba que las entradas de símbolos NULL se ignoran antes de compararlas.
+- [x] Se comprobó el tratamiento de los símbolos NULL antes de realizar comparaciones.
 - [x] La complejidad teórica coincide con la implementada.
 
 ### Reporte Crítico
 
 *¿Qué caso borde o problema omitió la IA y cómo lo solucionaste?*
 
-> La IA pasó los 6 casos, pero encontré una limitación importante. El primero es que `contar_visibles` guarda los nombres en un arreglo fijo `vistos[256]` y, cuando se llena, deja de registrar los siguientes nombres. Lo identifiqué al revisar la condición `n < MAX_NOMBRES`, porque si existen más de 256 símbolos diferentes el resultado puede quedar incompleto. El contrato no establece un límite de 256 nombres visibles, por lo que esto puede provocar un resultado incorrecto. La posible solución sería utilizar memoria dinámica para almacenar todos los nombres sin depender de un arreglo fijo. También revisé el manejo de las entradas `NULL` y comprobé que el código sí las omite antes de realizar las comparaciones con `strcmp`. Complejidad: `profundidad_de` es O(p·k) y `contar_visibles` es O((p·k)²), donde p es la profundidad y k ≤ 8 los símbolos por ámbito. El espacio auxiliar de la IA es O(1), porque utiliza un arreglo fijo de 256 posiciones.
+> Al analizar la solución generada, encontré que `contar_visibles` depende de un arreglo auxiliar con capacidad para 256 identificadores. El inconveniente aparece cuando se tienen más nombres diferentes que los que permite almacenar, porque la función deja de agregar elementos al llegar al límite y devuelve una cantidad incompleta. Aunque las seis pruebas del harness fueron satisfactorias, este escenario representa una situación que no queda cubierta por ellas. Para evitar esa restricción, se podría modificar la implementación y utilizar memoria dinámica, de manera que el almacenamiento no dependa de una cantidad establecida previamente. También revisé el tratamiento de los símbolos NULL y observé que se descartan antes de compararlos, por lo que no representan un problema en el código recibido.
+>
+> Respecto a la complejidad, `profundidad_de` tiene un costo temporal O(p·k), porque puede recorrer todos los ámbitos y revisar sus símbolos. En `contar_visibles` el costo es O((p·k)²), debido a que cada identificador nuevo se compara con los que ya fueron almacenados. El espacio auxiliar es O(1), ya que utiliza un arreglo de tamaño fijo de 256 posiciones.
 
 ---
 
