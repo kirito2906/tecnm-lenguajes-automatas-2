@@ -165,4 +165,4 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion20.md
 
 ---
 
-**Firma digital:** `kirito2906`
+**Firma digital:** `[kirito2906]`
