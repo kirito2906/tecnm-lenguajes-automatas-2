@@ -2,8 +2,8 @@
 **Materia:** Lenguajes y Autómatas II (SCD-1016)  
 **Tema:** Manejo de Ámbitos (Scope Global/Local)  
 **Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
-**Estudiante:** Luz María Andrade Mascote  
-**Matrícula:** 8126230243  
+**Estudiante:** Héctor Iván Varguez Andrade  
+**Matrícula:** 24531321  
 **Track:** C (el harness evalúa C; la versión en Rust es opcional y no se califica con este harness)  
 
 ---
