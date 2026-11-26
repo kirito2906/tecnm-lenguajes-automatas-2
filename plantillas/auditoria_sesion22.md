@@ -1,10 +1,10 @@
 # Bitácora de Requerimientos y Auditoría IA — Sesión 22
 
-**Materia:** Lenguajes y Autómatas II (SCD-1016)
-**Tema:** Generación de TAC para Expresiones
-**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)
-**Estudiante:** Héctor Iván Varguez Andrade
-**Matrícula:** 24531321
+**Materia:** Lenguajes y Autómatas II (SCD-1016)  
+**Tema:** Generación de TAC para Expresiones  
+**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
+**Estudiante:** Héctor Iván Varguez Andrade  
+**Matrícula:** 24531321  
 **Track:** C (el harness evalúa C; la versión en Rust es opcional y no se califica con este harness)
 
 ---
