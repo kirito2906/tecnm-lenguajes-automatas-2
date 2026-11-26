@@ -1,10 +1,10 @@
 # Bitácora de Requerimientos y Auditoría IA — Sesión 21
 
-**Materia:** Lenguajes y Autómatas II (SCD-1016)
-**Tema:** Fundamentos de Código de Tres Direcciones (TAC)
-**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)
-**Estudiante:** Héctor Iván Varguez Andrade
-**Matrícula:** 24531321
+**Materia:** Lenguajes y Autómatas II (SCD-1016)  
+**Tema:** Fundamentos de Código de Tres Direcciones (TAC)  
+**Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
+**Estudiante:** Héctor Iván Varguez Andrade  
+**Matrícula:** 24531321  
 **Track:** C (el harness evalúa C; la versión en Rust es opcional y no se califica con este harness)
 
 ---
@@ -158,4 +158,3 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion21.md
 ---
 
 **Firma digital:** `kirito2906`
-
