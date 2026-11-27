@@ -163,4 +163,4 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion24.md
 > Revisé principalmente el caso en el que el segundo operando es NULL, porque no se debe generar un segundo salto. También comprobé que el arreglo tuviera espacio suficiente para guardar las instrucciones. Al ejecutar el harness, los seis casos pasaron correctamente.
 
 ---
-**Firma digital:** [kirito2906]
+**Firma digital:** []
