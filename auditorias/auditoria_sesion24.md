@@ -1,6 +1,6 @@
-# Bitácora de Requerimientos y Auditoría IA — Sesión 24
+# Bitácora de Requerimientos y Auditoría IA — Sesión 25
 **Materia:** Lenguajes y Autómatas II (SCD-1016)  
-**Tema:** Control de Flujo: Sentencia if-else  
+**Tema:** Control de Flujo: Bucles While y For  
 **Docente Titular:** MCC. Iván Márquez Larios (`ijmarquezl`)  
 **Estudiante:** Héctor Iván Varguez Andrade  
 **Matrícula:** 24531321  
@@ -9,9 +9,9 @@
 ---
 
 ## 1. Fase 1: El Artesano (Dificultad Manual)
-*Reto:* Saltos condicionales y evaluación booleana  
+*Reto:* Esqueleto TAC de while y for con etiquetas  
 *Describe qué problema o restricción de memoria/sintaxis identificaste al codificar a mano:*
-> Tuve que tener cuidado con el operador lógico para generar el salto correcto. También revisé que cada instrucción tuviera espacio suficiente en el arreglo y que, cuando el segundo operando fuera NULL, solamente se generara un salto.
+> Tuve que cuidar que cada ciclo consumiera dos etiquetas distintas (inicio y fin) y que el segundo ciclo no las reutilizara, por eso el contador `*etiquetas` se incrementa en cada reserva. En el `for` coloqué la actualización del iterador antes del GOTO de regreso y omití `inicio` y `post` cuando son NULL. También revisé que el arreglo tuviera espacio suficiente antes de escribir y usé `snprintf` para no desbordar las líneas de 64 caracteres. [Agrega aquí en qué te atoraste realmente, si fue algo distinto.]
 
 ---
 
@@ -22,31 +22,33 @@
 | :--- | :--- |
 | **Contexto (C)** | C99 / GCC o Rust 2021 sin bibliotecas no estándar |
 | **Rol (R)** | Ingeniero de software de sistemas y compiladores |
-| **Especificación (E)** | Cortocircuito lógico en expresiones |
+| **Especificación (E)** | Etiquetas de inicio/fin y actualización del iterador en bucles |
 | **Output (O)** | Solo código modular y análisis de complejidad |
 
 ### 2.2 Prompt Estructurado
 ```text
 Contexto:
-Estoy trabajando en Lenguajes y Autómatas II y necesito implementar una función en C para generar saltos condicionales.
+Estoy trabajando en Lenguajes y Autómatas II y necesito implementar en C la
+generación del esqueleto TAC de un while y de un for. Compilo con
+gcc -std=c11 -Wall -Wextra -Werror.
 
 Rol:
 Actúa como un ingeniero de software especializado en C y compiladores.
 
 Especificación:
-Implementa la función emitir_condicion con esta firma:
-int emitir_condicion(char lineas[][64], int max, const char *a, const char *b, char op, const char *etiqueta);
+Implementa estas funciones con la firma exacta:
+void emitir_while(char lineas[][64], int max, int *n, const char *cond, int *etiquetas);
+void emitir_for(char lineas[][64], int max, int *n, const char *inicio, const char *cond, const char *post, int *etiquetas);
 
-La función debe:
-- Usar IFFALSE cuando el operador sea '&'.
-- Usar IFTRUE cuando el operador sea '|'.
-- Generar un salto para el primer operando.
-- Generar un segundo salto únicamente si b no es NULL.
-- Utilizar el formato "IFFALSE operando GOTO etiqueta" o "IFTRUE operando GOTO etiqueta".
-- Validar los parámetros recibidos.
-- Comprobar que el arreglo tenga espacio suficiente.
-- Utilizar snprintf para evitar desbordamientos.
-- Respetar la firma original y no incluir main().
+Las funciones deben:
+- Agregar líneas en lineas[*n] y avanzar *n.
+- Emitir para el while cuatro líneas: marca de inicio, "IFFALSE cond GOTO fin",
+  "GOTO inicio" y marca de fin.
+- Emitir para el for: init, marca, salto condicional, post, GOTO y marca de fin.
+- Omitir init o post cuando inicio o post sean NULL.
+- Consumir dos etiquetas por ciclo desde *etiquetas, sin reutilizar nombres.
+- Validar parámetros, comprobar que haya espacio y usar snprintf.
+- No incluir main().
 
 Output:
 Entrega el código modular en C y respeta todas las condiciones indicadas.
@@ -56,102 +58,81 @@ Entrega el código modular en C y respeta todas las condiciones indicadas.
 
 ## 3. Código Devuelto por el Modelo
 ```c
-#include "api_sesion24.h"
+#include "api_sesion25.h"
+#include <stdarg.h>
 #include <stdio.h>
 
-static int crear_salto(char destino[64],
-                       const char *tipo,
-                       const char *operando,
-                       const char *etiqueta) {
-
-    if (destino == NULL || tipo == NULL ||
-        operando == NULL || etiqueta == NULL) {
-        return 0;
-    }
-
-    int resultado = snprintf(destino, 64,
-                             "%s %s GOTO %s",
-                             tipo, operando, etiqueta);
-
-    if (resultado < 0 || resultado >= 64) {
-        destino[0] = '\0';
-        return 0;
-    }
-
+/* Agrega una linea formateada en lineas[*n] y avanza *n.
+ * Devuelve 1 si la agrego, 0 si no hay espacio. */
+static int agregar(char lineas[][64], int max, int *n, const char *fmt, ...) {
+    va_list ap;
+    if (*n >= max) return 0;
+    va_start(ap, fmt);
+    vsnprintf(lineas[*n], 64, fmt, ap);
+    va_end(ap);
+    (*n)++;
     return 1;
 }
 
-int emitir_condicion(char lineas[][64], int max,
-                     const char *a, const char *b,
-                     char op, const char *etiqueta) {
+/* Reserva dos etiquetas consecutivas: *ini y *fin. */
+static void reservar(int *etiquetas, int *ini, int *fin) {
+    *ini = (*etiquetas)++;
+    *fin = (*etiquetas)++;
+}
 
-    if (lineas == NULL || max <= 0 ||
-        a == NULL || etiqueta == NULL ||
-        (op != '&' && op != '|')) {
-        return 0;
-    }
+void emitir_while(char lineas[][64], int max, int *n, const char *cond, int *etiquetas) {
+    int ini, fin;
+    if (lineas == NULL || n == NULL || cond == NULL || etiquetas == NULL)
+        return;
+    if (max - *n < 4) return;
 
-    int cantidad = 1;
+    reservar(etiquetas, &ini, &fin);
+    agregar(lineas, max, n, "L%d:", ini);
+    agregar(lineas, max, n, "IFFALSE %s GOTO L%d", cond, fin);
+    agregar(lineas, max, n, "GOTO L%d", ini);
+    agregar(lineas, max, n, "L%d:", fin);
+}
 
-    if (b != NULL) {
-        cantidad = 2;
-    }
+void emitir_for(char lineas[][64], int max, int *n, const char *inicio, const char *cond, const char *post, int *etiquetas) {
+    int ini, fin;
+    int necesarias = 4;
+    if (lineas == NULL || n == NULL || cond == NULL || etiquetas == NULL)
+        return;
+    if (inicio != NULL) necesarias++;
+    if (post != NULL) necesarias++;
+    if (max - *n < necesarias) return;
 
-    if (max < cantidad) {
-        return 0;
-    }
-
-    const char *tipo = (op == '&') ? "IFFALSE" : "IFTRUE";
-
-    if (!crear_salto(lineas[0], tipo, a, etiqueta)) {
-        return 0;
-    }
-
-    if (b != NULL) {
-        if (!crear_salto(lineas[1], tipo, b, etiqueta)) {
-            lineas[0][0] = '\0';
-            lineas[1][0] = '\0';
-            return 0;
-        }
-    }
-
-    return cantidad;
+    reservar(etiquetas, &ini, &fin);
+    if (inicio != NULL) agregar(lineas, max, n, "%s", inicio);
+    agregar(lineas, max, n, "L%d:", ini);
+    agregar(lineas, max, n, "IFFALSE %s GOTO L%d", cond, fin);
+    if (post != NULL) agregar(lineas, max, n, "%s", post);
+    agregar(lineas, max, n, "GOTO L%d", ini);
+    agregar(lineas, max, n, "L%d:", fin);
 }
 ```
 
 ---
 
 ## 4. Fase 3: El Auditor (Resultados del Test Harness)
-*Pruebas ejecutadas:* Condiciones compuestas con AND y OR
+*Pruebas ejecutadas:* Esqueleto TAC de while y for
 
 ### Salida del harness
 ```text
-=== AUDITORIA SESION 24 - Saltos condicionales con cortocircuito ===
+=== AUDITORIA SESION 25 - Esqueleto TAC de while y for ===
 Caso                               esperado:              obtenido:              resultado
-[ 1] a && b (primer salto)
-     esperado: IFFALSE a GOTO L9
-     obtenido: IFFALSE a GOTO L9
+[ 1] while: marca de inicio             esperado: L0:          obtenido: L0:          OK
+[ 2] while: condicion
+     esperado: IFFALSE a < b GOTO L1
+     obtenido: IFFALSE a < b GOTO L1
      -> OK
-[ 2] a && b (segundo salto)
-     esperado: IFFALSE b GOTO L9
-     obtenido: IFFALSE b GOTO L9
-     -> OK
-[ 3] a && b (dos saltos)                esperado: 2            obtenido: 2            OK
-[ 4] a || b (primer salto)
-     esperado: IFTRUE a GOTO L9
-     obtenido: IFTRUE a GOTO L9
-     -> OK
-[ 5] a || b (segundo salto)
-     esperado: IFTRUE b GOTO L9
-     obtenido: IFTRUE b GOTO L9
-     -> OK
-[ 6] condicion simple (b NULL)
-     esperado: IFFALSE a GOTO L0
-     obtenido: IFFALSE a GOTO L0
-     -> OK
+[ 3] dos ciclos sin colision            esperado: L2:          obtenido: L2:          OK
+[ 4] for: inicializacion                esperado: i = 0        obtenido: i = 0        OK
+[ 5] for: actualizacion                 esperado: i = i + 1    obtenido: i = i + 1    OK
+[ 6] for sin post (NULL)                esperado: 5            obtenido: 5            OK
 
 RESULTADO: 6/6 pruebas superadas
-TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion24.md
+TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion25.md
 ```
 
 * [x] Caso base y límites superados sin *Crash*.
@@ -160,7 +141,7 @@ TODO EN VERDE. Documenta tu auditoria en auditorias/auditoria_sesion24.md
 
 ### Reporte Crítico
 *¿Qué caso borde o problema omitió la IA y cómo lo solucionaste?*
-> Revisé principalmente el caso en el que el segundo operando es NULL, porque no se debe generar un segundo salto. También comprobé que el arreglo tuviera espacio suficiente para guardar las instrucciones. Al ejecutar el harness, los seis casos pasaron correctamente.
+> Revisé principalmente que el `for` sin `post` (NULL) emitiera solo cinco líneas y que la actualización del iterador quedara antes del GOTO de regreso. También comprobé que dos ciclos seguidos usaran etiquetas distintas (L0/L1 y L2/L3) y que el arreglo tuviera espacio suficiente antes de escribir. Un punto que la IA no contempló es que `emitir_for` e `emitir_while` no avisan cuando no hay espacio: simplemente regresan sin emitir nada, y una condición de más de 63 caracteres se corta en silencio. Al ejecutar el harness, los seis casos pasaron correctamente.
 
 ---
 **Firma digital:** [kirito2906]
